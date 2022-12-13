@@ -1,0 +1,223 @@
+slotMachine <- function(bet, x=3, icons = 4, returnPayback = FALSE) {
+  slots <- matrix(data=NA, nrow = x, ncol = x)
+  slotOptions <- 1:icons
+  for(i in 1:x) {
+    for(j in 1:x) {
+      slots[i,j] <- sample(slotOptions,1)
+    }
+  }
+  print(slots)
+
+  winner <- FALSE
+  multiplier <- 0
+
+  cross1 <- diag(slots)
+  cross2 <- 1:x
+  back <- x:1
+  for (i in 1:x) {
+    cross2[i] <- slots[back[i],i]
+  }
+  
+  for (i in 1:x) {
+    if(length(unique(slots[i,])) == 1) {
+      print(paste("Row: ",slots[i,]))
+      winner <- TRUE
+      multiplier <- multiplier + 1
+    } 
+    if (length(unique(slots[,i])) == 1) {
+      print(paste("Column: ",slots[,i]))
+      winner <- TRUE
+      multiplier <- multiplier + 1
+      
+    } 
+  }
+  
+  if (length(unique(cross1)) == 1) {
+    print(paste("First Cross: ", cross1))
+    winner <- TRUE
+    multiplier <- multiplier + 1
+    
+  } 
+  if (length(unique(cross2)) == 1) {
+    
+    print(paste("Second Cross: ", cross2))
+    winner <- TRUE
+    multiplier <- multiplier + 1
+    
+  }
+  
+  print(multiplier)
+  if (winner) {
+    payback <- 2**multiplier * bet - bet 
+    #payback <- multiplier * bet - bet
+    print(paste("You win! You won ", payback))
+  } else {
+    payback <- -1*bet
+    #payback <- 0
+    print(paste("Loser. You lost ", bet))
+  }
+  
+  if (returnPayback) {
+    return(payback)
+  } else {
+    return(multiplier)
+  }
+    
+}
+
+library(ggplot2)
+library(plotly)
+library(tidyverse)
+
+slotMachine(50)
+
+set.seed(1323)
+
+greg <- (replicate(1000, slotMachine(1)))
+mean(greg > 0)
+mean(greg)
+table(greg)
+
+greg1 <- (replicate(1000, slotMachine(1, icons=2)))
+mean(greg1 > 0)
+mean(greg1)
+table(greg1)
+
+greg2 <- (replicate(1000, slotMachine(1, x=2)))
+mean(greg2 > 0)
+mean(greg2)
+table(greg2)
+
+table(greg)
+
+set.seed(1234)
+icons.wins <- data.frame(icons_1 = replicate(1000, slotMachine(1, icons=1)), 
+                         icons_2 = replicate(1000, slotMachine(1, icons=2)), 
+                         icons_3 = replicate(1000, slotMachine(1, icons=3)), 
+                         icons_4 = replicate(1000, slotMachine(1, icons=4)), 
+                         icons_5 = replicate(1000, slotMachine(1, icons=5)), 
+                         icons_6 = replicate(1000, slotMachine(1, icons=6)), 
+                         icons_7 = replicate(1000, slotMachine(1, icons=7)), 
+                         icons_8 = replicate(1000, slotMachine(1, icons=8)), 
+                         icons_9 = replicate(1000, slotMachine(1, icons=9)), 
+                         icons_10 = replicate(1000, slotMachine(1, icons=10)))
+icons.wins <- data.frame()
+head(icons.wins)
+log(2)/log(1.044)
+
+icons.wins.long <- icons.wins %>% 
+  pivot_longer(!x,names_to = "NumberOfIcons", values_to = "Matching")
+
+fig <- ggplot(icons.wins.long, aes(x, Matching, col = NumberOfIcons)) + geom_boxplot()
+fig
+
+attach(icons.wins)
+
+mean.matches <- c(mean(icons_1), mean(icons_2),
+                   mean(icons_3), mean(icons_4),
+                   mean(icons_5), mean(icons_6),
+                   mean(icons_7), mean(icons_8),
+                   mean(icons_9), mean(icons_10))
+
+probOfWinning <- c(mean(icons_1 > 0), mean(icons_2 > 0),
+                   mean(icons_3 > 0), mean(icons_4 > 0),
+                   mean(icons_5 > 0), mean(icons_6 > 0),
+                   mean(icons_7 > 0), mean(icons_8 > 0),
+                   mean(icons_9 > 0), mean(icons_10 > 0))
+head(probOfWinning)
+
+means <- data.frame(Icons.MeanWinnings = mean.winnings, Icons.probOfWinning = probOfWinning)
+means
+
+plot(1:10, mean.winnings) 
+plot(1:10, probOfWinning)
+
+set.seed(1234)
+rowcol.wins <- data.frame(x = 1:1000,
+                          rowcol_1 = replicate(1000, slotMachine(1, x=1)), 
+                          rowcol_2 = replicate(1000, slotMachine(1, x=2)), 
+                          rowcol_3 = replicate(1000, slotMachine(1, x=3)), 
+                          rowcol_4 = replicate(1000, slotMachine(1, x=4)), 
+                          rowcol_5 = replicate(1000, slotMachine(1, x=5)), 
+                          rowcol_6 = replicate(1000, slotMachine(1, x=6)), 
+                          rowcol_7 = replicate(1000, slotMachine(1, x=7)), 
+                          rowcol_8 = replicate(1000, slotMachine(1, x=8)), 
+                          rowcol_9 = replicate(1000, slotMachine(1, x=9)), 
+                          rowcol_10 = replicate(1000, slotMachine(1, x=10)))
+head(rowcol.wins)
+
+rowcol.wins.long <- rowcol.wins %>% 
+  pivot_longer(!x,names_to = "NumberOfRowsColumns", values_to = "Payback")
+
+rowcol.wins.long
+
+fig <- ggplot(rowcol.wins.long, aes(x, Payback, col = NumberOfRowsColumns)) + geom_boxplot()
+fig
+
+attach(rowcol.wins)
+
+mean.winnings <- c(mean(rowcol_1), mean(rowcol_2),
+                   mean(rowcol_3), mean(rowcol_4),
+                   mean(rowcol_5), mean(rowcol_6),
+                   mean(rowcol_7), mean(rowcol_8),
+                   mean(rowcol_9), mean(rowcol_10))
+
+probOfWinning <- c(mean(rowcol_1 > 0), mean(rowcol_2 > 0),
+                   mean(rowcol_3 > 0), mean(rowcol_4 > 0),
+                   mean(rowcol_5 > 0), mean(rowcol_6 > 0),
+                   mean(rowcol_7 > 0), mean(rowcol_8 > 0),
+                   mean(rowcol_9 > 0), mean(rowcol_10 > 0))
+plot(1:10, mean.winnings) 
+plot(1:10, probOfWinning)
+
+tester <- data.frame(1:1000)
+head(tester)
+set.seed(1134)
+for(i in 1:10) {
+  print(paste("Number of rows and columns ", i))
+  for(j in 1:10) {
+    print(paste("Number of icons: ", j))
+    nam <- paste0("rc", i, "icons", j)
+    stuff <- replicate(1000, slotMachine(1, x = i, icons = j))
+    tester[nam] <- stuff
+  }
+}
+
+heatmap <- data.frame(rc=as.factor(rep(c(1:10), each = 10)), icons = as.factor(rep(c(1:10), times = 10)), payback = NA, probOfWinning = NA) 
+
+payback <- c()
+probOfWinning <- c()
+for(i in names(tester.i)) {
+  payback <- append(payback, (mean(tester.i[[i]])))
+  probOfWinning <- append(probOfWinning, mean(tester.i[[i]] > 0))
+}
+heatmap
+heatmap$payback <- payback
+heatmap$probOfWinning <- probOfWinning
+probOfWinning
+ggplot(heatmap, aes(rc, icons, fill = probOfWinning, label = probOfWinning)) + geom_tile() + scale_fill_gradientn(colours= c("red", "white", "blue"), values = c(0,.5,1)) + geom_text()
+ggplot(heatmap, aes(as.numeric(rc), as.numeric(icons), z = probOfWinning)) + geom_contour_filled() + theme(aspect.ratio = 1)
+
+ggplot(heatmap, aes(rc, icons, fill = payback, label = payback)) + geom_tile() + scale_fill_gradientn(colours = c("red", "white", "blue"), values = c(-1,0,.1)) + geom_text()
+ggplot(heatmap, aes(as.numeric(rc), as.numeric(icons), z = payback)) + geom_contour_filled() + theme(aspect.ratio = 1)
+
+hist(log((heatmap$payback)+ 1.0000001))
+max(heatmap$payback)
+# heat map of icons vs grids 
+# pattern for the diagonal of the matrix (same rc and same icons num) 
+#graph probability of winning/money made vs number or icons/columns and rows 
+# i walk in with x amount of money. how long until i run out? what's the max money i made?
+# I walk in with x amount of money. I will do X runs. Am I more likely to lose money or make money?
+money <- 500
+satisfied <- 1000
+trackMoney <- c()
+bet <- 10
+while(money > 0 && money < satisfied) {
+  spin <- money + slotMachine(50)
+  spin
+  money <- spin
+  trackMoney <- append(trackMoney, spin)
+  print(paste("Balance: ", money))
+}
+plot(trackMoney, type = "l")
+
